@@ -36,3 +36,23 @@ class DuplicateDateException implements Exception {
   @override
   String toString() => 'A record for $date already exists';
 }
+
+class RecordQuery {
+  const RecordQuery({this.search = '', this.from, this.to, this.sortBy = 'date', this.desc = true});
+  final String search;
+  final String? from;
+  final String? to;
+  final String sortBy;
+  final bool desc;
+
+  bool get isFiltered => search.isNotEmpty || from != null || to != null;
+
+  RecordQuery copyWith({String? search, String? sortBy, bool? desc, String? from, String? to, bool clearRange = false}) =>
+      RecordQuery(
+        search: search ?? this.search,
+        sortBy: sortBy ?? this.sortBy,
+        desc: desc ?? this.desc,
+        from: clearRange ? null : (from ?? this.from),
+        to: clearRange ? null : (to ?? this.to),
+      );
+}

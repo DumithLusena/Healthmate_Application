@@ -8,6 +8,7 @@ class HealthRepository {
   final Future<Database> Function() _db;
 
   static const _table = DatabaseHelper.table;
+  static const _sortable = {'date', 'steps', 'calories', 'water'};
 
   Map<String, Object?> _data(HealthRecord r) => Map<String, Object?>.from(r.toMap())..remove('id');
 
@@ -22,9 +23,29 @@ class HealthRepository {
     }
   }
 
-  Future<List<HealthRecord>> getAll() async {
+  Future<List<HealthRecord>> getAll([RecordQuery q = const RecordQuery()]) async {
     final db = await _db();
-    final rows = await db.query(_table, orderBy: 'date DESC');
+    final where = <String>[];
+    final args = <Object?>[];
+    if (q.search.isNotEmpty) {
+      where.add('date LIKE ?');
+      args.add('%${q.search}%');
+    }
+    if (q.from != null) {
+      where.add('date >= ?');
+      args.add(q.from);
+    }
+    if (q.to != null) {
+      where.add('date <= ?');
+      args.add(q.to);
+    }
+    final col = _sortable.contains(q.sortBy) ? q.sortBy : 'date';
+    final rows = await db.query(
+      _table,
+      where: where.isEmpty ? null : where.join(' AND '),
+      whereArgs: args.isEmpty ? null : args,
+      orderBy: '$col ${q.desc ? 'DESC' : 'ASC'}, date DESC',
+    );
     return rows.map(HealthRecord.fromMap).toList();
   }
 
