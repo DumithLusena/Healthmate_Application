@@ -29,3 +29,10 @@ class HealthRecord {
     water: m['water'] as int,
   );
 }
+
+class DuplicateDateException implements Exception {
+  DuplicateDateException(this.date);
+  final String date;
+  @override
+  String toString() => 'A record for $date already exists';
+}
