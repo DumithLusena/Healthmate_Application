@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/health_record.dart';
 import '../state/records_provider.dart';
 import 'widgets.dart';
+import 'record_form_screen.dart';
 
 class RecordsScreen extends StatelessWidget {
   const RecordsScreen({super.key});
@@ -48,6 +49,10 @@ class RecordsScreen extends StatelessWidget {
         final r = p.records[i];
         return RecordTile(
           record: r,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => RecordFormScreen(recordId: r.id)),
+          ),
           trailing: IconButton(
             tooltip: 'Delete ${r.date}',
             icon: Icon(Icons.delete_outline, color: s.error),
