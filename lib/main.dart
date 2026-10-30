@@ -8,6 +8,7 @@ import 'screens/records_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/summary_screen.dart';
 import 'state/records_provider.dart';
+import 'screens/record_form_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -46,6 +47,8 @@ class _ShellState extends State<Shell> {
   int _i = 0;
   static const _titles = ['HealthMate', 'Health Records', 'Daily Summary', 'Settings'];
 
+  void _add() => Navigator.push(context, MaterialPageRoute(builder: (_) => const RecordFormScreen()));
+
   @override
   Widget build(BuildContext context) {
     final s = Theme.of(context).colorScheme;
@@ -66,6 +69,14 @@ class _ShellState extends State<Shell> {
             : Text(_titles[_i]),
       ),
       body: SafeArea(child: pages[_i]),
+      floatingActionButton: (_i == 0 || _i == 1)
+          ? FloatingActionButton.extended(
+              tooltip: 'Add health record',
+              onPressed: _add,
+              icon: const Icon(Icons.add),
+              label: const Text('Add record'),
+            )
+          : null,
       bottomNavigationBar: NavigationBar(
         selectedIndex: _i,
         onDestinationSelected: (v) => setState(() => _i = v),
