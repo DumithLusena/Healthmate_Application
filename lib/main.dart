@@ -9,12 +9,16 @@ import 'screens/settings_screen.dart';
 import 'screens/summary_screen.dart';
 import 'state/records_provider.dart';
 import 'screens/record_form_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'state/settings_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await SharedPreferences.getInstance();
   final repo = HealthRepository(() => DatabaseHelper.instance.database);
   runApp(MultiProvider(
     providers: [
+      ChangeNotifierProvider(create: (_) => SettingsProvider(prefs)),
       ChangeNotifierProvider(create: (_) => RecordsProvider(repo)..load()),
     ],
     child: const HealthMateApp(),
@@ -26,12 +30,13 @@ class HealthMateApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final sp = context.watch<SettingsProvider>();
     return MaterialApp(
       title: 'HealthMate',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.system,
+      themeMode: sp.themeMode,
       home: const Shell(),
     );
   }

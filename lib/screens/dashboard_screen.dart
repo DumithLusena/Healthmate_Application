@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../core/stats.dart';
 import '../core/theme.dart';
 import '../state/records_provider.dart';
+import '../state/settings_provider.dart';
 import 'record_form_screen.dart';
 import 'widgets.dart';
 
@@ -11,11 +12,10 @@ class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key, required this.onViewAll});
   final VoidCallback onViewAll;
 
-  static const _goals = [10000, 2000, 2500];
-
   @override
   Widget build(BuildContext context) {
     final rp = context.watch<RecordsProvider>();
+    final sp = context.watch<SettingsProvider>();
     final t = Theme.of(context);
     final now = DateTime.now();
     if (rp.loading) return const Center(child: CircularProgressIndicator());
@@ -40,23 +40,29 @@ class DashboardScreen extends StatelessWidget {
     var overall = 0.0;
     if (today != null) {
       for (var i = 0; i < metrics.length; i++) {
-        final pct = Stats.goalPct(metrics[i].pick(today), _goals[i]) / 100;
+        final pct = Stats.goalPct(metrics[i].pick(today), sp.goalFor(metrics[i].label)) / 100;
         overall += pct.clamp(0.0, 1.0).toDouble() / metrics.length;
       }
     }
+    final name = sp.userName;
 
     return ListView(padding: const EdgeInsets.fromLTRB(20, 4, 20, 96), children: [
       Row(children: [
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(greeting, style: TextStyle(color: t.colorScheme.onSurfaceVariant, fontWeight: FontWeight.w600)),
-            Text('Welcome back', style: t.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800)),
+            Text(name.isEmpty ? greeting : '$greeting,',
+                style: TextStyle(color: t.colorScheme.onSurfaceVariant, fontWeight: FontWeight.w600)),
+            Text(name.isEmpty ? 'Welcome back' : name,
+                style: t.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800)),
           ]),
         ),
         CircleAvatar(
           radius: 22,
           backgroundColor: t.colorScheme.primary.withAlpha(36),
-          child: Icon(Icons.person, color: t.colorScheme.primary),
+          child: name.isEmpty
+              ? Icon(Icons.person, color: t.colorScheme.primary)
+              : Text(String.fromCharCode(name.runes.first).toUpperCase(),
+              style: TextStyle(color: t.colorScheme.primary, fontWeight: FontWeight.w800, fontSize: 18)),
         ),
       ]),
       const SizedBox(height: 16),
@@ -69,7 +75,8 @@ class DashboardScreen extends StatelessWidget {
             const SizedBox(height: 8),
             Text('No records yet', style: t.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
             const SizedBox(height: 4),
-            const Text('Add your first day of steps, calories and water.', textAlign: TextAlign.center),
+            const Text('Add your first day of steps, calories and water.',
+                textAlign: TextAlign.center),
           ]),
         )
       else ...[
@@ -88,8 +95,7 @@ class DashboardScreen extends StatelessWidget {
           child: Row(children: [
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('TODAY',
-                    style: TextStyle(color: Colors.white.withAlpha(200), fontWeight: FontWeight.w800, letterSpacing: 1.2, fontSize: 12)),
+                Text('TODAY', style: TextStyle(color: Colors.white.withAlpha(200), fontWeight: FontWeight.w800, letterSpacing: 1.2, fontSize: 12)),
                 const SizedBox(height: 4),
                 Text(DateFormat('EEEE, d MMMM').format(now),
                     style: const TextStyle(color: Colors.white, fontSize: 19, fontWeight: FontWeight.w800)),
@@ -143,7 +149,7 @@ class DashboardScreen extends StatelessWidget {
 
         const SectionTitle("Today's activity"),
         for (var i = 0; i < metrics.length; i++)
-          MetricCard(index: i, value: today == null ? null : metrics[i].pick(today), goal: _goals[i]),
+          MetricCard(index: i, value: today == null ? null : metrics[i].pick(today), goal: sp.goalFor(metrics[i].label)),
 
         Panel(
           child: Row(children: [
@@ -167,9 +173,7 @@ class DashboardScreen extends StatelessWidget {
             const SizedBox(height: 14),
             SimpleBarChart(
               values: [for (final r in week) r?.steps],
-              labels: [
-                for (var i = 6; i >= 0; i--) DateFormat('E').format(DateTime(now.year, now.month, now.day - i)).substring(0, 1)
-              ],
+              labels: [for (var i = 6; i >= 0; i--) DateFormat('E').format(DateTime(now.year, now.month, now.day - i)).substring(0, 1)],
               color: metricColor(t.colorScheme, 0),
               unit: 'steps',
               title: 'Steps over the last 7 days',
