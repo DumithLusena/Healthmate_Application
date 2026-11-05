@@ -11,14 +11,14 @@ class AppTheme {
     final dark = b == Brightness.dark;
     final scheme = ColorScheme.fromSeed(seedColor: brand, brightness: b).copyWith(
       primary: dark ? const Color(0xFF4FD6A8) : const Color(0xFF0B8260),
-      onPrimary: dark ? const Color(0xFF00382A) : Colors.white,
-      surface: dark ? const Color(0xFF18211E) : Colors.white,
-      onSurface: dark ? const Color(0xFFE8F0ED) : const Color(0xFF14201C),
-      onSurfaceVariant: dark ? const Color(0xFFAFC0B9) : const Color(0xFF53635D),
-      outline: dark ? const Color(0xFF2E3B36) : const Color(0xFFDDE6E2),
+      onPrimary: dark ? const Color(0xFF00382A) : const Color(0xFFFAFCFB),
+      surface: dark ? const Color(0xFF18211E) : const Color(0xFFF6F8F6),
+      onSurface: dark ? const Color(0xFFE8F0ED) : const Color(0xFF17231F),
+      onSurfaceVariant: dark ? const Color(0xFFAFC0B9) : const Color(0xFF58675F),
+      outline: dark ? const Color(0xFF2E3B36) : const Color(0xFFD3DDD7),
       error: dark ? const Color(0xFFFF8A80) : const Color(0xFFB3261E),
     );
-    final bg = dark ? const Color(0xFF0F1613) : const Color(0xFFF2F7F5);
+    final bg = dark ? const Color(0xFF0F1613) : const Color(0xFFEBF0ED);
     final shape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(14));
     return ThemeData(
       useMaterial3: true,
@@ -34,7 +34,7 @@ class AppTheme {
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: scheme.surface,
-        indicatorColor: scheme.primary.withAlpha(dark ? 60 : 36),
+        indicatorColor: scheme.primary.withAlpha(dark ? 60 : 40),
         height: 68,
         labelTextStyle: WidgetStateProperty.resolveWith((s) => TextStyle(
           fontSize: 12,

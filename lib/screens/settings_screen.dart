@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../core/validators.dart';
 import '../state/settings_provider.dart';
+import 'about_screen.dart';
 import 'widgets.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -14,6 +15,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   final _key = GlobalKey<FormState>();
   late final Map<String, TextEditingController> _c;
+  late final TextEditingController _name;
   static const _max = {'Steps': Validators.maxSteps, 'Calories': Validators.maxCalories, 'Water': Validators.maxWater};
   static const _unit = {'Steps': 'steps', 'Calories': 'kcal', 'Water': 'ml'};
   static const _metricIndex = {'Steps': 0, 'Calories': 1, 'Water': 2};
@@ -22,11 +24,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void initState() {
     super.initState();
     final sp = context.read<SettingsProvider>();
+    _name = TextEditingController(text: sp.userName);
     _c = {for (final k in SettingsProvider.defaults.keys) k: TextEditingController(text: '${sp.goalFor(k)}')};
   }
 
   @override
   void dispose() {
+    _name.dispose();
     for (final c in _c.values) {
       c.dispose();
     }
@@ -34,6 +38,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _snack(String m) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(m)));
+
+  Future<void> _saveName() async {
+    await context.read<SettingsProvider>().setName(_name.text);
+    if (mounted) _snack('Name saved');
+  }
 
   Future<void> _save() async {
     if (!_key.currentState!.validate()) return;
@@ -55,6 +64,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final sp = context.watch<SettingsProvider>();
     final t = Theme.of(context);
     return ListView(padding: const EdgeInsets.fromLTRB(20, 4, 20, 32), children: [
+      const SectionTitle('Profile'),
+      Panel(
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Expanded(
+            child: TextField(
+              controller: _name,
+              textCapitalization: TextCapitalization.words,
+              maxLength: 24,
+              decoration: const InputDecoration(labelText: 'Your name', prefixIcon: Icon(Icons.badge_outlined)),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: FilledButton(
+              style: FilledButton.styleFrom(minimumSize: const Size(72, 52)),
+              onPressed: _saveName,
+              child: const Text('Save'),
+            ),
+          ),
+        ]),
+      ),
       const SectionTitle('Appearance'),
       SegmentedButton<ThemeMode>(
         segments: const [
@@ -96,6 +127,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Expanded(child: OutlinedButton(onPressed: _reset, child: const Text('Reset'))),
           ]),
         ]),
+      ),
+      const SizedBox(height: 12),
+      Panel(
+        padding: EdgeInsets.zero,
+        child: ListTile(
+          leading: Icon(Icons.info_outline, color: t.colorScheme.primary),
+          title: const Text('About / Help'),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen())),
+        ),
       ),
     ]);
   }
