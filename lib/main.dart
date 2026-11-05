@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'core/theme.dart';
 import 'data/database_helper.dart';
 import 'data/health_repository.dart';
 import 'screens/dashboard_screen.dart';
+import 'screens/record_form_screen.dart';
 import 'screens/records_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/summary_screen.dart';
+import 'screens/welcome_screen.dart';
 import 'state/records_provider.dart';
-import 'screens/record_form_screen.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'state/settings_provider.dart';
+import 'screens/splash_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,19 +27,37 @@ Future<void> main() async {
   ));
 }
 
-class HealthMateApp extends StatelessWidget {
+class HealthMateApp extends StatefulWidget {
   const HealthMateApp({super.key});
+  @override
+  State<HealthMateApp> createState() => _HealthMateAppState();
+}
+
+class _HealthMateAppState extends State<HealthMateApp> {
+  bool _splashDone = false;
 
   @override
   Widget build(BuildContext context) {
     final sp = context.watch<SettingsProvider>();
+    final Widget home = !_splashDone
+        ? SplashScreen(
+      key: const ValueKey('splash'),
+      onFinished: () => setState(() => _splashDone = true),
+    )
+        : (sp.onboarded
+        ? const Shell(key: ValueKey('shell'))
+        : const WelcomeScreen(key: ValueKey('welcome')));
+
     return MaterialApp(
       title: 'HealthMate',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: sp.themeMode,
-      home: const Shell(),
+      home: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 500),
+        child: home,
+      ),
     );
   }
 }
@@ -76,11 +96,11 @@ class _ShellState extends State<Shell> {
       body: SafeArea(child: pages[_i]),
       floatingActionButton: (_i == 0 || _i == 1)
           ? FloatingActionButton.extended(
-              tooltip: 'Add health record',
-              onPressed: _add,
-              icon: const Icon(Icons.add),
-              label: const Text('Add record'),
-            )
+        tooltip: 'Add health record',
+        onPressed: _add,
+        icon: const Icon(Icons.add),
+        label: const Text('Add record'),
+      )
           : null,
       bottomNavigationBar: NavigationBar(
         selectedIndex: _i,
